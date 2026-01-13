@@ -1,4 +1,4 @@
-package com.halcyon.techcheckbackend.service.impl;
+package com.halcyon.techcheckbackend.service.user.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjUtil;
@@ -6,7 +6,6 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.halcyon.techcheckbackend.constant.UserConstant;
 import com.halcyon.techcheckbackend.exception.BusinessException;
 import com.halcyon.techcheckbackend.exception.ErrorCode;
 import com.halcyon.techcheckbackend.exception.ThrowUtils;
@@ -15,7 +14,7 @@ import com.halcyon.techcheckbackend.model.entity.User;
 import com.halcyon.techcheckbackend.model.enums.UserRoleEnum;
 import com.halcyon.techcheckbackend.model.vo.LoginUserVO;
 import com.halcyon.techcheckbackend.model.vo.UserVO;
-import com.halcyon.techcheckbackend.service.UserService;
+import com.halcyon.techcheckbackend.service.user.UserService;
 import com.halcyon.techcheckbackend.mapper.UserMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -178,6 +177,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.like(StrUtil.isNotBlank(userProfile), "userProfile", userProfile);
         queryWrapper.orderBy(StrUtil.isNotEmpty(sortField), sortOrder.equals("ascend"), sortField);
         return queryWrapper;
+    }
+
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        // 仅管理员可查询
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) userObj;
+        return isAdmin(user);
+    }
+
+    @Override
+    public boolean isAdmin(User user) {
+        return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
     }
 
 }

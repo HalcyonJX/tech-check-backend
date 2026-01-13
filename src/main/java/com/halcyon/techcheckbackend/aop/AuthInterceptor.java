@@ -5,7 +5,7 @@ import com.halcyon.techcheckbackend.exception.ErrorCode;
 import com.halcyon.techcheckbackend.exception.ThrowUtils;
 import com.halcyon.techcheckbackend.model.entity.User;
 import com.halcyon.techcheckbackend.model.enums.UserRoleEnum;
-import com.halcyon.techcheckbackend.service.UserService;
+import com.halcyon.techcheckbackend.service.user.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;

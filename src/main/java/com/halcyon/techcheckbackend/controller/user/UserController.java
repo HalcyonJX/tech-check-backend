@@ -1,4 +1,4 @@
-package com.halcyon.techcheckbackend.controller;
+package com.halcyon.techcheckbackend.controller.user;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.halcyon.techcheckbackend.annotation.AuthCheck;
@@ -12,7 +12,7 @@ import com.halcyon.techcheckbackend.model.dto.user.*;
 import com.halcyon.techcheckbackend.model.entity.User;
 import com.halcyon.techcheckbackend.model.vo.LoginUserVO;
 import com.halcyon.techcheckbackend.model.vo.UserVO;
-import com.halcyon.techcheckbackend.service.UserService;
+import com.halcyon.techcheckbackend.service.user.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
@@ -156,7 +156,6 @@ public class UserController {
         Page<UserVO> userVOPage = new Page<>(current, pageSize, userPage.getTotal());
         List<UserVO> userVOList = userService.getUserVOList(userPage.getRecords());
         userVOPage.setRecords(userVOList);
-        userVOPage.setTotal(userVOList.size());
         return ResultUtils.success(userVOPage);
     }
 }
