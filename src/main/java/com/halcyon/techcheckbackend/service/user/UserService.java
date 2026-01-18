@@ -8,7 +8,9 @@ import com.halcyon.techcheckbackend.model.vo.LoginUserVO;
 import com.halcyon.techcheckbackend.model.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
 * @author 张嘉鑫
@@ -106,4 +108,21 @@ public interface UserService extends IService<User> {
      * @return
      */
     boolean isAdmin(User user);
+
+    /**
+     * 添加用户签到记录
+     *
+     * @param userId 用户 id
+     * @return 当前是否已签到成功
+     */
+    boolean addUserSignIn(long userId);
+
+    /**
+     * 获取用户某个年份的签到记录
+     *
+     * @param userId 用户 id
+     * @param year   年份（为空表示当前年份）
+     * @return 签到记录
+     */
+    List<Integer> getUserSignInRecord(long userId, Integer year);
 }

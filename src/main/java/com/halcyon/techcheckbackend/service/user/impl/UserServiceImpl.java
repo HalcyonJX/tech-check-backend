@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.halcyon.techcheckbackend.constant.RedisConstant;
 import com.halcyon.techcheckbackend.exception.BusinessException;
 import com.halcyon.techcheckbackend.exception.ErrorCode;
 import com.halcyon.techcheckbackend.exception.ThrowUtils;
@@ -16,14 +17,18 @@ import com.halcyon.techcheckbackend.model.vo.LoginUserVO;
 import com.halcyon.techcheckbackend.model.vo.UserVO;
 import com.halcyon.techcheckbackend.service.user.UserService;
 import com.halcyon.techcheckbackend.mapper.UserMapper;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBitSet;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.Year;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.halcyon.techcheckbackend.constant.UserConstant.USER_LOGIN_STATE;
@@ -37,6 +42,9 @@ import static com.halcyon.techcheckbackend.constant.UserConstant.USER_LOGIN_STAT
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService{
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -190,6 +198,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public boolean isAdmin(User user) {
         return user != null && UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+    }
+
+    @Override
+    public boolean addUserSignIn(long userId) {
+        LocalDate date = LocalDate.now();
+        String key = RedisConstant.getUserSignInRedisKey(date.getYear(), userId);
+        RBitSet signInBitSet = redissonClient.getBitSet(key);
+        //获取当前日期是一年中的第几天，作为偏移量（从1开始计数）
+        int offset = date.getDayOfYear();
+        //检查当天是否已经签到
+        if(!signInBitSet.get(offset)){
+            //未签到
+            return signInBitSet.set(offset,true);
+        }
+        //已经签到
+        return true;
+    }
+
+    @Override
+    public List<Integer> getUserSignInRecord(long userId, Integer year) {
+        if (year == null) {
+            LocalDate date = LocalDate.now();
+            year = date.getYear();
+        }
+        String key = RedisConstant.getUserSignInRedisKey(year, userId);
+        RBitSet signInBitSet = redissonClient.getBitSet(key);
+        // 加载 BitSet 到内存中，避免后续读取时发送多次请求
+        BitSet bitSet = signInBitSet.asBitSet();
+        // 统计签到的日期
+        List<Integer> dayList = new ArrayList<>();
+        // 从索引 0 开始查找下一个被设置为 1 的位
+        int index = bitSet.nextSetBit(0);
+        while (index >= 0) {
+            dayList.add(index);
+            // 查找下一个被设置为 1 的位
+            index = bitSet.nextSetBit(index + 1);
+        }
+        return dayList;
     }
 
 }
